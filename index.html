@@ -663,29 +663,33 @@ function applyTileBaseFontSize(){
 </script>
 
 
+<!-- 🔥 Firebase init (CDN) -->
 <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
-    apiKey: "AIzaSyCA6pywjlx2TbYDnmdfrdwB2JWvzL2ejl4",
+    apiKey: "AIzaSyCA6pywjLx2TbYDnmdfrdwB2JWvzL2ejl4",
     authDomain: "specialgacha-sr.firebaseapp.com",
     projectId: "specialgacha-sr",
     storageBucket: "specialgacha-sr.firebasestorage.app",
     messagingSenderId: "674962019391",
-    appId: "1:674962019391:web:f7a7556a0fcf552e83948a",
-    measurementId: "G-127DYZ9DV8"
+    appId: "1:674962019391:web:f7a7556a0fcf552e83948a"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // 전역으로 노출
+  window.firebaseApp = app;
+  window.firebaseAuth = auth;
+  window.firebaseDB = db;
+
+  console.log("✅ Firebase initialized");
 </script>
+<!-- 🔥 Firebase init end -->
 </body>
 
 </html>
