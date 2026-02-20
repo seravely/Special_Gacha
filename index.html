@@ -4,104 +4,666 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>스페셜 뽑기판 (단일 HTML)</title>
-
-  <!-- ⚠️ 디자인 / CSS / 레이아웃: 기존 그대로 -->
   <style>
-    /* === 네가 올린 CSS 그대로 === */
     :root{ --bg:#fff; --card:#fff; --muted:#64748b; --border:#e2e8f0; --shadow: 0 1px 2px rgba(15,23,42,.08); }
     *{ box-sizing:border-box; }
-    body{ margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; background:var(--bg); color:#0f172a; }
-    /* 이하 전부 네 코드 그대로라 생략 안 함 */
-  </style>
-</head>
+    body{ margin:0; font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans KR\", sans-serif; background:var(--bg); color:#0f172a; }
+    .wrap{ max-width:1100px; margin:0 auto; padding:16px; }
+    h1{ margin:0; font-size:28px; letter-spacing:-.02em; }
+    .sub{ margin-top:6px; color:var(--muted); font-size:13px; }
+    .toprow{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px; }
+    .progress{ color:#334155; font-size:13px; }
+    .grid{ display:grid; grid-template-columns: 380px minmax(0,1fr); gap:16px; margin-top:16px; align-items:start; }
+@media(max-width: 900px){ body{ overflow-x:auto; } .wrap{ min-width:900px; } }
+    .panel{ border:1px solid var(--border); border-radius:18px; padding:14px; box-shadow:var(--shadow); background:var(--card); }
+    .panel h2{ margin:0; font-size:15px; }
+    textarea{ width:100%; height:160px; resize:none; border:1px solid var(--border); border-radius:14px; padding:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:13px; outline:none; }
+    textarea:focus{ box-shadow:0 0 0 3px rgba(148,163,184,.4); }
+    .btns{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    button{ border:1px solid var(--border); background:#fff; padding:10px 12px; border-radius:14px; font-weight:700; cursor:pointer; box-shadow:var(--shadow); }
+    button.primary{ background:#0f172a; border-color:#0f172a; color:#fff; }
+    button.good{ background:#16a34a; border-color:#16a34a; color:#fff; }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+    .err{ margin-top:10px; border:1px solid #fecaca; background:#fff1f2; color:#be123c; border-radius:14px; padding:10px 12px; font-size:13px; }
+    .row{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+    input[type=number]{ width:110px; border:1px solid var(--border); border-radius:14px; padding:10px 12px; font-size:13px; outline:none; }
+    input[type=number]:focus{ box-shadow:0 0 0 3px rgba(148,163,184,.4); }
+    .remainbox{ margin-top:10px; border:1px solid var(--border); background:#f8fafc; border-radius:14px; padding:10px 12px; font-size:13px; }
+    .remainlist{ max-height:160px; overflow:auto; margin-top:8px; padding-right:2px; }
+    .remainitem{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:4px 0; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
+    .colorhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .swatch{ width:20px; height:20px; border:1px solid #cbd5e1; border-radius:6px; }
+    .slider{ display:flex; align-items:center; gap:10px; margin-top:8px; }
+    .slider label{ width:18px; font-weight:800; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    input[type=range]{ flex:1; }
+    .boardwrap{ border:1px solid var(--border); border-radius:18px; padding:12px; }
+    .board{ border:1px solid rgba(226,232,240,.9); border-radius:18px; padding:12px; }
+    .tiles{ display:grid; gap:12px; }
+    .tile{ position:relative; aspect-ratio:1/1; border:none; border-radius:14px; box-shadow:0 2px 0 rgba(15,23,42,.14); cursor:pointer; user-select:none; }
+
+    .bigcenter{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:8px; text-align:center; font-weight:900; font-size:1.05rem; line-height:1.1; color:#4d3c00; word-break:break-word; overflow-wrap:anywhere; white-space:normal; }
+    .tile.hidden{ background: rgba(255,255,255,.35); color:#334155; }
+    .tile.hidden:hover{ background: rgba(255,255,255,.5); }
+    .tile.revealed{ background: rgba(255,255,255,.95); color:#0f172a; }
+    .tile .idx{ font-size:11px; color:#475569; }
+    .tile .name{ font-weight:800; margin-top:4px; word-break:keep-all; }
+    .history{ max-height:240px; overflow:auto; margin-top:10px; padding-right:2px; display:flex; flex-direction:column; gap:8px; }
+    .histitem{ border:1px solid var(--border); border-radius:14px; padding:10px 12px; }
+    .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .chip{ background:#f1f5f9; border-radius:999px; padding:6px 10px; font-size:13px; }
+    footer{ margin-top:18px; color:var(--muted); font-size:12px; }
+  
+    .panel.collapsed #colorBody{ display:none; }
+    .panel.collapsed .colorhead{ margin-bottom:0; }
+    
+
+    .bigcenter .label{display:block;width:100%;max-height:100%;}
+
+    /* === FIX: keep two-column layout (no vertical stacking) === */
+    .grid{ grid-template-columns: 380px 1fr !important; }
+
+
+    /* === FIX: color panel collapse shows ONLY the button === */
+    .panel.collapsed{ padding:10px 12px !important; }
+    .panel.collapsed #colorBody{ display:none !important; }
+    .panel.collapsed .colorhead{ display:flex !important; justify-content:flex-end !important; align-items:center !important; gap:0 !important; }
+    .panel.collapsed .colorhead h2,
+    .panel.collapsed .colorhead #swatch,
+    .panel.collapsed .colorhead #rgbText,
+    .panel.collapsed .colorhead > div{ display:none !important; }
+    .panel.collapsed #toggleColorPanel{ display:inline-flex !important; }
+
+
+/* === Force 2-column layout: left settings / right board === */
+.grid{
+  display:grid !important;
+  grid-template-columns: 420px minmax(0, 1fr) !important;
+  gap:16px !important;
+  align-items:start !important;
+}
+.grid > .col{ min-width:0; }
+@media (max-width: 99999px){
+  /* prevent stacking rules from taking over */
+}
+body{ overflow-x:auto; }
+.wrap{ min-width: 980px; }
+
+/* === HARD FIX: keep left settings + right board side-by-side ALWAYS === */
+.grid{ display:flex !important; flex-wrap:nowrap !important; align-items:flex-start !important; gap:16px !important; }
+.grid > .col{ min-width:0 !important; }
+.grid > .col:first-child{ flex:0 0 420px !important; width:420px !important; }
+.grid > .col:last-child{ flex:1 1 auto !important; }
+
+/* If viewport is narrow, keep 2-col by allowing horizontal scroll instead of stacking */
+body{ overflow-x:auto; }
+.wrap{ min-width: 980px; }
+
+/* === Color panel: when collapsed, show ONLY the toggle button === */
+.panel#colorPanel.collapsed{ padding:10px 12px !important; }
+.panel#colorPanel.collapsed .colorhead{ justify-content:flex-end !important; }
+.panel#colorPanel.collapsed .colorhead > :not(#toggleColorPanel){ display:none !important; }
+.panel#colorPanel.collapsed #colorBody{ display:none !important; }
+
+</style>
+</head>
 <body>
 
-<!-- ================= 로그인 화면 ================= -->
-<div id="lock-screen" style="position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#eef6ff; z-index:9999;">
-  <h2>로그인</h2>
-  <input type="password" id="password" placeholder="비밀번호 입력" style="padding:10px 12px; font-size:16px;" />
-  <button onclick="checkPassword()">입장</button>
-  <p id="error" style="color:red; display:none;">비밀번호가 틀렸어요</p>
-</div>
-
-<div id="site-content" style="display:none;">
-  <div id="topbar" style="display:flex; justify-content:space-between; align-items:center;">
-    <div id="who-badge"></div>
-    <button onclick="doLogout()">로그아웃</button>
+  <!-- PASSWORD GATE -->
+  <div id="lock-screen" style="
+    position:fixed; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:12px;
+    background:#eef6ff; z-index:9999;
+  ">
+    <h2>로그인</h2>
+    <input type="password" id="password" placeholder="비밀번호 입력"
+      style="padding:10px 12px; font-size:16px;"/>
+    <button onclick="checkPassword()" style="padding:8px 14px;">입장</button>
+    <p id="error" style="color:red; display:none;">비밀번호가 틀렸어요</p>
   </div>
+
+  <div id="site-content" style="display:none;">
+
+  <div id="topbar" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin:10px 0 14px;">
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <div id="who-badge" style="font-size:12px; opacity:0.7;"></div>
+      <div id="welcome" style="font-size:14px; font-weight:700; display:none;"></div>
+    </div>
+    <button id="logoutBtn" type="button" onclick="doLogout()" style="padding:6px 10px;">로그아웃</button>
+  </div>
+    <div id="logList" style="font-size:12px; line-height:1.5; white-space:pre-wrap;"></div>
+  </div>
+
+
+  <div class="wrap">
+    <div class="toprow">
+      <div>
+        <h1>스페셜 뽑기판</h1>
+        <div class="sub">한 줄에 <span class="mono" style="background:#f1f5f9;padding:2px 6px;border-radius:8px;">상품명 갯수</span> (예: <span class="mono" style="background:#f1f5f9;padding:2px 6px;border-radius:8px;">하트 5</span>) → Enter로 다음 품목</div>
+      </div>
+      <div class="progress"><b>진행:</b> <span id="prog">0/0</span> (남음 <span id="left">0</span>)</div>
+    </div>
+
+    <div class="grid" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:nowrap;">
+      <div class="col">
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h2>품목 입력</h2>
+            <div style="font-size:12px;color:#64748b;">입력 합계: <b id="planned">0</b> · 칸 수: <b id="plannedSize">0</b></div>
+          </div>
+<textarea id="items" placeholder=""></textarea>
+          <div id="err" class="err" style="display:none;"></div>
+          <div class="btns">
+            <button id="build" class="primary">뽑기판 생성/갱신</button>
+            <button id="reset">초기화</button>
+          </div>
+        </div>
+
+        
+        <div class="panel" style="margin-top:14px;">
+          <div class="colorhead">
+            <button id="toggleColorPanel" type="button" class="btn ghost" style="margin-left:auto;">설정 숨기기</button>
+            <h2>뽑기판 색상 (RGB)</h2>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div id="swatch" class="swatch"></div>
+              <span id="rgbText" class="mono" style="font-size:12px;color:#64748b;"></span>
+            </div>
+          </div>
+
+          <div id="colorBody" class="colorbody">
+          <div class="slider"><label>R</label><input id="r" type="range" min="0" max="255" /><input id="rN" type="number" min="0" max="255" /></div>
+          <div class="slider"><label>G</label><input id="g" type="range" min="0" max="255" /><input id="gN" type="number" min="0" max="255" /></div>
+          <div class="slider"><label>B</label><input id="b" type="range" min="0" max="255" /><input id="bN" type="number" min="0" max="255" /></div>
+
+          <div class="btns">
+            <button id="randColor">랜덤 색상</button>
+            <button id="whiteColor">흰색으로</button>
+          </div>
+        </div><div class="panel" id="colorPanel" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h2>남은 갯수</h2>
+            <div style="font-size:12px;color:#64748b;">남은 칸: <b id="remainTotal">0</b></div>
+          </div>
+
+          <div class="remainbox">
+            <div style="font-weight:800;">남은 갯수</div>
+            <div id="remainList" class="remainlist"></div>
+          </div>
+        </div>
+
+
+        
+      </div>
+
+      <div class="col">
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h2>뽑기판</h2>
+            <div style="font-size:12px;color:#64748b;">칸 수: <b id="tileCount">0</b> · 열: <b id="cols">0</b></div>
+          </div>
+
+          <div id="boardwrap" class="boardwrap" style="margin-top:10px;">
+            <div id="board" class="board">
+              <div id="tiles" class="tiles"></div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+
+        <div class="panel" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <h2>뽑은 기록</h2>
+            <div style="font-size:12px;color:#64748b;">최신이 아래</div>
+          </div>
+          <div id="history" class="history"></div>
+        </div>
+      </div>
+    </div>
 </div>
 
-<!-- ================= 기존 JS 로직 (수정 없음) ================= -->
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  // tiles: {id,name,revealed,revealedAt}
+  let tiles = [];
+  // history: 클릭으로 뽑은 항목들(순서대로)
+  let history = [];
+
+  function clampInt(n, min, max){
+    n = Math.trunc(Number(n));
+    if (!Number.isFinite(n)) n = min;
+    return Math.max(min, Math.min(max, n));
+  }
+
+
+  // --- Fit tile text to always stay inside the square (auto-shrink) ---
+  
+  function fitOne(el, minPx=12){
+    if (!el) return;
+
+    const label = el.querySelector('.label') || el;
+
+    // Reset
+    label.style.fontSize = '';
+    label.style.lineHeight = '';
+    label.style.transform = '';
+    label.style.whiteSpace = 'normal';
+    label.style.wordBreak = 'break-word';
+    label.style.overflowWrap = 'anywhere';
+    label.style.display = 'block';
+    label.style.width = '100%';
+
+    // Make sure container measures correctly
+    const cw = el.clientWidth;
+    const ch = el.clientHeight;
+    if (cw <= 0 || ch <= 0) return;
+
+    // Start from computed font size
+    let fs = parseFloat(getComputedStyle(label).fontSize) || 16;
+
+    // Shrink font until it fits
+    let guard = 0;
+    while (guard++ < 80){
+      const sw = label.scrollWidth;
+      const sh = label.scrollHeight;
+      if (sw <= cw && sh <= ch) break;
+      fs -= 1;
+      if (fs <= minPx){ fs = minPx; label.style.fontSize = fs + 'px'; break; }
+      label.style.fontSize = fs + 'px';
+    }
+
+    // Tighten line-height if still tall
+    if (label.scrollHeight > ch){
+      label.style.lineHeight = '1.0';
+      guard = 0;
+      while (guard++ < 40){
+        if (label.scrollWidth <= cw && label.scrollHeight <= ch) break;
+        fs -= 1;
+        if (fs <= minPx){ fs = minPx; label.style.fontSize = fs + 'px'; break; }
+        label.style.fontSize = fs + 'px';
+      }
+    }
+
+    // Final fallback: scale down (never clip / never overflow)
+    const sw2 = label.scrollWidth;
+    const sh2 = label.scrollHeight;
+    if (sw2 > cw || sh2 > ch){
+      const scale = Math.min(cw / sw2, ch / sh2, 1);
+      label.style.transformOrigin = 'center';
+      label.style.transform = `scale(${scale})`;
+    }
+  }
+
+  function fitTileTexts(){
+    document.querySelectorAll('#tiles .bigcenter').forEach(el => fitOne(el, 12));
+  }
+  function parseItems(text){
+    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const items = [];
+    const errors = [];
+    for (let i=0;i<lines.length;i++){
+      const line = lines[i];
+      const parts = line.split(/\s+/);
+      if (parts.length < 2){
+        errors.push(`${i+1}줄: "상품명 갯수" 형식으로 입력해줘. (예: 하트 5)`);
+        continue;
+      }
+      const countStr = parts[parts.length-1];
+      const name = parts.slice(0,-1).join(' ').trim();
+      const count = Number(countStr);
+      if (!name){ errors.push(`${i+1}줄: 상품명이 비어있어.`); continue; }
+      if (!Number.isFinite(count) || count <= 0){ errors.push(`${i+1}줄: 갯수는 1 이상의 숫자여야 해.`); continue; }
+      items.push({name, count: Math.trunc(count)});
+    }
+    const merged = new Map();
+    for (const it of items) merged.set(it.name, (merged.get(it.name)||0) + it.count);
+    return { items: Array.from(merged.entries()).map(([name,count])=>({name,count})), errors };
+  }
+
+  function buildTilesWithSize(items, size){
+    const pool = [];
+    let seq = 0;
+    for (const it of items){
+      for (let i=0;i<it.count;i++) pool.push(it.name);
+    }
+
+    const FILL = "꽝";
+    if (pool.length < size){
+      for (let i=0;i<(size - pool.length);i++) pool.push(FILL);
+    } else if (pool.length > size){
+      pool.length = size; // 초과분은 잘라냄
+    }
+
+    // shuffle
+    for (let i=pool.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]] = [pool[j],pool[i]];
+    }
+
+    return pool.map((name)=>({ id:`${seq++}-${name}`, name, revealed:false }));
+  }
+
+  function getCols(n){
+    if (n<=16) return 4;
+    if (n<=36) return 6;
+    if (n<=64) return 8;
+    return 10;
+  }
+
+  function boardColor(){
+    const rr = clampInt($('r').value,0,255);
+    const gg = clampInt($('g').value,0,255);
+    const bb = clampInt($('b').value,0,255);
+    return `rgb(${rr}, ${gg}, ${bb})`;
+  }
+
+  function setRGB(rr,gg,bb){
+    rr = clampInt(rr,0,255); gg = clampInt(gg,0,255); bb = clampInt(bb,0,255);
+    $('r').value = rr; $('g').value = gg; $('b').value = bb;
+    $('rN').value = rr; $('gN').value = gg; $('bN').value = bb;
+    renderColor();
+  }
+
+  function renderColor(){
+    const c = boardColor();
+    $('boardwrap').style.background = c;
+    $('swatch').style.background = c;
+    $('rgbText').textContent = c;
+  }
+
+  function computeRemaining(){
+    const map = new Map();
+    for (const t of tiles){
+      if (!t.revealed) map.set(t.name, (map.get(t.name)||0)+1);
+    }
+    return Array.from(map.entries()).map(([name,count])=>({name,count}))
+      .sort((a,b)=> (b.count-a.count) || a.name.localeCompare(b.name));
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#39;');
+  }
+
+  function showErrors(errors){
+    const err = $('err');
+    if (!errors.length){ err.style.display='none'; err.textContent=''; return; }
+    err.style.display='block';
+    err.innerHTML = '<b>입력 오류</b><ul style="margin:8px 0 0 18px; padding:0;">' +
+      errors.slice(0,4).map(e=>`<li>${escapeHtml(e)}</li>`).join('') +
+      (errors.length>4 ? `<li>…외 ${errors.length-4}개</li>` : '') +
+      '</ul>';
+  }
+
+  function render(){
+    const revealed = tiles.filter(t=>t.revealed).length;
+    $('prog').textContent = `${revealed}/${tiles.length}`;
+    $('left').textContent = `${tiles.length - revealed}`;
+    $('remainTotal').textContent = `${tiles.length - revealed}`;
+    $('tileCount').textContent = `${tiles.length}`;
+
+    // remaining list
+    const rem = computeRemaining();
+    const list = $('remainList');
+    list.innerHTML = '';
+    if (tiles.length === 0){
+      list.innerHTML = '';
+    } else if (rem.length === 0){
+      list.innerHTML = '';
+    } else {
+      for (const x of rem){
+        const row = document.createElement('div');
+        row.className = 'remainitem';
+        row.innerHTML = `<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px;">${escapeHtml(x.name)}</div><div class="mono" style="font-weight:800;">${x.count}</div>`;
+        list.appendChild(row);
+      }
+    }
+
+    // tiles
+    const cols = getCols(tiles.length || 1);
+    $('cols').textContent = `${cols}`;
+    const tilesEl = $('tiles');
+    tilesEl.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    tilesEl.innerHTML = '';
+
+    if (tiles.length === 0){
+      tilesEl.innerHTML = ``;
+    } else {
+      tiles.forEach((t, idx)=>{
+        const div = document.createElement('div');
+        div.className = 'tile ' + (t.revealed ? 'revealed' : 'hidden');
+        div.title = t.revealed ? t.name : `#${idx+1}`;
+        // ✅ 요구: 물음표(?) 제거, 숫자만 가운데 크게 / 클릭하면 숫자 위치에 항목 표시
+        div.innerHTML = `<div class="bigcenter"><span class="label">${t.revealed ? escapeHtml(t.name) : (idx+1)}</span></div>`;
+        div.addEventListener('click', ()=>{
+          if (t.revealed) return;
+          t.revealed = true;
+          t.revealedAt = Date.now();
+          history.push(t.name);
+          render();
+        });
+        tilesEl.appendChild(div);
+      });
+    }
+
+    // ensure tile text always fits
+    requestAnimationFrame(fitTileTexts);
+
+    // history
+    const hEl = $('history');
+    hEl.innerHTML = '';
+    if (history.length === 0){
+      hEl.innerHTML = '';
+    } else {
+      history.forEach((name, i)=>{
+        const box = document.createElement('div');
+        box.className = 'histitem';
+        box.innerHTML = `<div style="font-size:12px;color:#64748b;">#${i+1}</div><div class="chips"><span class="chip">${escapeHtml(name)}</span></div>`;
+        hEl.appendChild(box);
+      });
+      hEl.scrollTop = hEl.scrollHeight;
+    }
+  }
+
+  function createBoard(){
+    const parsed = parseItems($('items').value);
+    const sum = parsed.items.reduce((a,c)=>a+c.count,0);
+    $('planned').textContent = sum;
+
+    const size = clampInt(sum, 0, 5000);
+    $('plannedSize').textContent = size;
+
+    showErrors(parsed.errors);
+    if (parsed.errors.length) return;
+
+    if (size === 0){
+      tiles = [];
+      history = [];
+      renderColor();
+      render();
+      return;
+    }
+
+    tiles = buildTilesWithSize(parsed.items, size);
+    history = [];
+    renderColor();
+    render();
+  }
+
+  function resetReveals(){
+    tiles = tiles.map(t=>({ ...t, revealed:false, revealedAt: undefined }));
+    history = [];
+    render();
+  }
+
+  function wire(){
+    $('build').addEventListener('click', createBoard);
+    $('reset').addEventListener('click', resetReveals);
+
+    const sync = (idRange, idNum) => {
+      const range = $(idRange); const num = $(idNum);
+      const on = () => { num.value = clampInt(range.value,0,255); renderColor(); };
+      range.addEventListener('input', on);
+      num.addEventListener('input', () => { range.value = clampInt(num.value,0,255); renderColor(); });
+    };
+    sync('r','rN'); sync('g','gN'); sync('b','bN');
+
+    $('randColor').addEventListener('click', ()=>{
+      setRGB(Math.floor(Math.random()*256), Math.floor(Math.random()*256), Math.floor(Math.random()*256));
+    });
+    $('whiteColor').addEventListener('click', ()=> setRGB(255,255,255));
+
+    // init
+    setRGB(90,160,240);
+    createBoard();
+    window.addEventListener('resize', ()=>{ fitTileTexts(); });
+
+  }
+
+  wire();
+
+  // --- RGB settings panel hide/show ---
+  const colorPanelBtn = document.getElementById('toggleColorPanel');
+  const colorPanel = colorPanelBtn?.closest('.panel');
+  if (colorPanelBtn && colorPanel){
+    colorPanelBtn.addEventListener('click', () => {
+      const collapsed = colorPanel.classList.toggle('collapsed');
+      colorPanelBtn.textContent = collapsed ? '색상 설정 열기' : '설정 숨기기';
+    });
+  }
+</script>
+
+<script>
+/* === Font-size matches index.html tile/text ratio ===
+   Base font is proportional to the tile width, then the existing fit logic (if any) may reduce it to prevent overflow.
+*/
+function applyTileBaseFontSize(){
+  const tiles = document.querySelectorAll('.tile');
+  if(!tiles.length) return;
+  // Use first tile as reference size
+  const w = tiles[0].getBoundingClientRect().width || 0;
+  if(!w) return;
+
+  // Index-like ratio: about 18% of tile width
+  const basePx = Math.max(14, Math.min(28, w * 0.18));
+
+  tiles.forEach(t=>{
+    const label = t.querySelector('.bigcenter');
+    if(label){
+      label.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif';
+      label.style.fontWeight = '900';
+      label.style.fontSize = basePx.toFixed(2) + 'px';
+    }
+  });
+}
+</script>
+
+
+<script>
+(function(){
+  const run = ()=>{ try{ applyTileBaseFontSize(); }catch(e){} };
+  window.addEventListener('load', run);
+  window.addEventListener('resize', run);
+
+  // If there is a known board-render function, wrap it so font sizing reapplies after re-render.
+  const candidates = ['renderBoard','renderTiles','buildBoard','drawBoard','createBoard','updateBoard','renderGrid'];
+  for(const name of candidates){
+    const fn = window[name];
+    if(typeof fn === 'function'){
+      window[name] = function(){
+        const r = fn.apply(this, arguments);
+        setTimeout(run, 0);
+        return r;
+      };
+      break;
+    }
+  }
+
+  // Fallback: observe board container for changes
+  const board = document.querySelector('.tiles') || document.querySelector('.draw-board') || document.querySelector('#board') || document.querySelector('.board');
+  if(board && window.MutationObserver){
+    const mo = new MutationObserver(()=>run());
+    mo.observe(board, {childList:true, subtree:true});
+  }
+})();
+</script>
+
+
+  </div>
+
+
 <script>
   const USERS = {
     "Seravelyy!": { name: "세라", role: "admin" },
     "emo0205": { name: "에메모현", role: "user" }
   };
 
-  function unlockAs(user){
-    document.getElementById("lock-screen").style.display = "none";
-    document.getElementById("site-content").style.display = "block";
-    sessionStorage.setItem("who", user.name);
-    sessionStorage.setItem("role", user.role);
-
-    document.getElementById("who-badge").textContent = `${user.name} 님 접속`;
-
-    // 🔥 로그인 로그
-    window.logEvent?.("login", { role: user.role });
+  function showWelcome(name) {
+    const welcome = document.getElementById("welcome");
+    if (!welcome) return;
+    welcome.textContent = `${name}님 환영합니다!`;
+    welcome.style.display = "block";
+    setTimeout(() => {
+      welcome.style.display = "none";
+    }, 2500);
   }
 
-  function checkPassword(){
-    const pw = document.getElementById("password").value.trim();
-    const user = USERS[pw];
-    if(user){
+  function unlockAs(user) {
+    document.getElementById("lock-screen").style.display = "none";
+    document.getElementById("site-content").style.display = "block";
+    sessionStorage.setItem("unlocked", "true");
+    sessionStorage.setItem("who", user.name);
+    sessionStorage.setItem("role", user.role || "user");
+
+    const badge = document.getElementById("who-badge");
+    if (badge) badge.textContent = `${user.name} 님 접속`;
+
+    showWelcome(user.name);
+  }
+
+  function checkPassword() {
+    const input = document.getElementById("password").value.trim();
+    const user = USERS[input];
+
+    if (user) {
       unlockAs(user);
-    }else{
+    } else {
       document.getElementById("error").style.display = "block";
     }
   }
 
-  function doLogout(){
-    window.logEvent?.("logout");
-    sessionStorage.clear();
-    location.reload();
+  function doLogout() {
+    sessionStorage.removeItem("unlocked");
+    sessionStorage.removeItem("who");
+    sessionStorage.removeItem("role");
+    // 잠금 화면으로 복귀
+    document.getElementById("site-content").style.display = "none";
+    document.getElementById("lock-screen").style.display = "flex";
+    document.getElementById("password").value = "";
+    document.getElementById("error").style.display = "none";
+  }
+
+  // 새로고침 유지
+  if (sessionStorage.getItem("unlocked") === "true") {
+    const who = sessionStorage.getItem("who");
+    const role = sessionStorage.getItem("role") || "user";
+    document.getElementById("lock-screen").style.display = "none";
+    document.getElementById("site-content").style.display = "block";
+    const badge = document.getElementById("who-badge");
+    if (badge && who) badge.textContent = `${who} 님 접속`;
+    // role 유지
+    sessionStorage.setItem("role", role);
   }
 </script>
 
-<!-- ================= 🔥 Firebase + 로그 시스템 (핵심) ================= -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCA6pywjLx2TbYDnmdfrdwB2JWvzL2ejl4",
-    authDomain: "specialgacha-sr.firebaseapp.com",
-    projectId: "specialgacha-sr",
-    storageBucket: "specialgacha-sr.firebasestorage.app",
-    messagingSenderId: "674962019391",
-    appId: "1:674962019391:web:f7a7556a0fcf552e83948a"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // 🔥 전역 로그 함수 (UI / 레이아웃 영향 0)
-  window.logEvent = async function(type, payload = {}) {
-    try {
-      await addDoc(collection(db, "logs"), {
-        type,
-        ...payload,
-        who: sessionStorage.getItem("who") || "unknown",
-        role: sessionStorage.getItem("role") || "user",
-        time: serverTimestamp()
-      });
-    } catch (e) {
-      console.warn("logEvent error", e);
-    }
-  };
-
-  console.log("✅ Firebase + logging ready");
-</script>
 
 </body>
+
 </html>
