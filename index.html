@@ -7,14 +7,14 @@
   <style>
     :root{ --bg:#fff; --card:#fff; --muted:#64748b; --border:#e2e8f0; --shadow: 0 1px 2px rgba(15,23,42,.08); }
     *{ box-sizing:border-box; }
-    body{ margin:0; font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans KR\", sans-serif; background:var(--bg); color:#0f172a; }
+    body{ margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; background:var(--bg); color:#0f172a; }
     .wrap{ max-width:1100px; margin:0 auto; padding:16px; }
     h1{ margin:0; font-size:28px; letter-spacing:-.02em; }
     .sub{ margin-top:6px; color:var(--muted); font-size:13px; }
     .toprow{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px; }
     .progress{ color:#334155; font-size:13px; }
     .grid{ display:grid; grid-template-columns: 380px minmax(0,1fr); gap:16px; margin-top:16px; align-items:start; }
-@media(max-width: 900px){ body{ overflow-x:auto; } .wrap{ min-width:900px; } }
+    @media(max-width: 900px){ body{ overflow-x:auto; } .wrap{ min-width:900px; } }
     .panel{ border:1px solid var(--border); border-radius:18px; padding:14px; box-shadow:var(--shadow); background:var(--card); }
     .panel h2{ margin:0; font-size:15px; }
     textarea{ width:100%; height:160px; resize:none; border:1px solid var(--border); border-radius:14px; padding:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:13px; outline:none; }
@@ -25,7 +25,6 @@
     button.good{ background:#16a34a; border-color:#16a34a; color:#fff; }
     button:disabled{ opacity:.45; cursor:not-allowed; }
     .err{ margin-top:10px; border:1px solid #fecaca; background:#fff1f2; color:#be123c; border-radius:14px; padding:10px 12px; font-size:13px; }
-    .row{ display:flex; align-items:center; gap:10px; margin-top:10px; }
     input[type=number]{ width:110px; border:1px solid var(--border); border-radius:14px; padding:10px 12px; font-size:13px; outline:none; }
     input[type=number]:focus{ box-shadow:0 0 0 3px rgba(148,163,184,.4); }
     .remainbox{ margin-top:10px; border:1px solid var(--border); background:#f8fafc; border-radius:14px; padding:10px 12px; font-size:13px; }
@@ -42,71 +41,30 @@
     .board{ border:1px solid rgba(226,232,240,.9); border-radius:18px; padding:12px; }
     .tiles{ display:grid; gap:12px; }
     .tile{ position:relative; aspect-ratio:1/1; border:none; border-radius:14px; box-shadow:0 2px 0 rgba(15,23,42,.14); cursor:pointer; user-select:none; }
-
     .bigcenter{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:8px; text-align:center; font-weight:900; font-size:1.05rem; line-height:1.1; color:#4d3c00; word-break:break-word; overflow-wrap:anywhere; white-space:normal; }
     .tile.hidden{ background: rgba(255,255,255,.35); color:#334155; }
     .tile.hidden:hover{ background: rgba(255,255,255,.5); }
     .tile.revealed{ background: rgba(255,255,255,.95); color:#0f172a; }
-    .tile .idx{ font-size:11px; color:#475569; }
-    .tile .name{ font-weight:800; margin-top:4px; word-break:keep-all; }
     .history{ max-height:240px; overflow:auto; margin-top:10px; padding-right:2px; display:flex; flex-direction:column; gap:8px; }
     .histitem{ border:1px solid var(--border); border-radius:14px; padding:10px 12px; }
     .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
     .chip{ background:#f1f5f9; border-radius:999px; padding:6px 10px; font-size:13px; }
-    footer{ margin-top:18px; color:var(--muted); font-size:12px; }
-  
-    .panel.collapsed #colorBody{ display:none; }
-    .panel.collapsed .colorhead{ margin-bottom:0; }
-    
 
-    .bigcenter .label{display:block;width:100%;max-height:100%;}
+    /* === HARD FIX: keep 2-col always === */
+    .grid{ display:flex !important; flex-wrap:nowrap !important; align-items:flex-start !important; gap:16px !important; }
+    .grid > .col{ min-width:0 !important; }
+    .grid > .col:first-child{ flex:0 0 420px !important; width:420px !important; }
+    .grid > .col:last-child{ flex:1 1 auto !important; }
+    body{ overflow-x:auto; }
+    .wrap{ min-width: 980px; }
 
-    /* === FIX: keep two-column layout (no vertical stacking) === */
-    .grid{ grid-template-columns: 380px 1fr !important; }
-
-
-    /* === FIX: color panel collapse shows ONLY the button === */
+    /* === Color panel collapse === */
     .panel.collapsed{ padding:10px 12px !important; }
     .panel.collapsed #colorBody{ display:none !important; }
-    .panel.collapsed .colorhead{ display:flex !important; justify-content:flex-end !important; align-items:center !important; gap:0 !important; }
-    .panel.collapsed .colorhead h2,
-    .panel.collapsed .colorhead #swatch,
-    .panel.collapsed .colorhead #rgbText,
-    .panel.collapsed .colorhead > div{ display:none !important; }
+    .panel.collapsed .colorhead{ display:flex !important; justify-content:flex-end !important; align-items:center !important; }
+    .panel.collapsed .colorhead > :not(#toggleColorPanel){ display:none !important; }
     .panel.collapsed #toggleColorPanel{ display:inline-flex !important; }
-
-
-/* === Force 2-column layout: left settings / right board === */
-.grid{
-  display:grid !important;
-  grid-template-columns: 420px minmax(0, 1fr) !important;
-  gap:16px !important;
-  align-items:start !important;
-}
-.grid > .col{ min-width:0; }
-@media (max-width: 99999px){
-  /* prevent stacking rules from taking over */
-}
-body{ overflow-x:auto; }
-.wrap{ min-width: 980px; }
-
-/* === HARD FIX: keep left settings + right board side-by-side ALWAYS === */
-.grid{ display:flex !important; flex-wrap:nowrap !important; align-items:flex-start !important; gap:16px !important; }
-.grid > .col{ min-width:0 !important; }
-.grid > .col:first-child{ flex:0 0 420px !important; width:420px !important; }
-.grid > .col:last-child{ flex:1 1 auto !important; }
-
-/* If viewport is narrow, keep 2-col by allowing horizontal scroll instead of stacking */
-body{ overflow-x:auto; }
-.wrap{ min-width: 980px; }
-
-/* === Color panel: when collapsed, show ONLY the toggle button === */
-.panel#colorPanel.collapsed{ padding:10px 12px !important; }
-.panel#colorPanel.collapsed .colorhead{ justify-content:flex-end !important; }
-.panel#colorPanel.collapsed .colorhead > :not(#toggleColorPanel){ display:none !important; }
-.panel#colorPanel.collapsed #colorBody{ display:none !important; }
-
-</style>
+  </style>
 </head>
 <body>
 
@@ -124,17 +82,14 @@ body{ overflow-x:auto; }
   </div>
 
   <div id="site-content" style="display:none;">
-
-  <div id="topbar" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin:10px 0 14px;">
-    <div style="display:flex; flex-direction:column; gap:6px;">
-      <div id="who-badge" style="font-size:12px; opacity:0.7;"></div>
-      <div id="welcome" style="font-size:14px; font-weight:700; display:none;"></div>
+    <div id="topbar" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin:10px 0 14px;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div id="who-badge" style="font-size:12px; opacity:0.7;"></div>
+        <div id="welcome" style="font-size:14px; font-weight:700; display:none;"></div>
+      </div>
+      <button id="logoutBtn" type="button" onclick="doLogout()" style="padding:6px 10px;">로그아웃</button>
     </div>
-    <button id="logoutBtn" type="button" onclick="doLogout()" style="padding:6px 10px;">로그아웃</button>
   </div>
-    <div id="logList" style="font-size:12px; line-height:1.5; white-space:pre-wrap;"></div>
-  </div>
-
 
   <div class="wrap">
     <div class="toprow">
@@ -145,14 +100,14 @@ body{ overflow-x:auto; }
       <div class="progress"><b>진행:</b> <span id="prog">0/0</span> (남음 <span id="left">0</span>)</div>
     </div>
 
-    <div class="grid" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:nowrap;">
+    <div class="grid">
       <div class="col">
         <div class="panel">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
             <h2>품목 입력</h2>
             <div style="font-size:12px;color:#64748b;">입력 합계: <b id="planned">0</b> · 칸 수: <b id="plannedSize">0</b></div>
           </div>
-<textarea id="items" placeholder=""></textarea>
+          <textarea id="items" placeholder=""></textarea>
           <div id="err" class="err" style="display:none;"></div>
           <div class="btns">
             <button id="build" class="primary">뽑기판 생성/갱신</button>
@@ -160,10 +115,9 @@ body{ overflow-x:auto; }
           </div>
         </div>
 
-        
-        <div class="panel" style="margin-top:14px;">
+        <div class="panel" id="colorPanel" style="margin-top:14px;">
           <div class="colorhead">
-            <button id="toggleColorPanel" type="button" class="btn ghost" style="margin-left:auto;">설정 숨기기</button>
+            <button id="toggleColorPanel" type="button" style="margin-left:auto;">설정 숨기기</button>
             <h2>뽑기판 색상 (RGB)</h2>
             <div style="display:flex;align-items:center;gap:8px;">
               <div id="swatch" class="swatch"></div>
@@ -171,16 +125,19 @@ body{ overflow-x:auto; }
             </div>
           </div>
 
-          <div id="colorBody" class="colorbody">
-          <div class="slider"><label>R</label><input id="r" type="range" min="0" max="255" /><input id="rN" type="number" min="0" max="255" /></div>
-          <div class="slider"><label>G</label><input id="g" type="range" min="0" max="255" /><input id="gN" type="number" min="0" max="255" /></div>
-          <div class="slider"><label>B</label><input id="b" type="range" min="0" max="255" /><input id="bN" type="number" min="0" max="255" /></div>
+          <div id="colorBody">
+            <div class="slider"><label>R</label><input id="r" type="range" min="0" max="255" /><input id="rN" type="number" min="0" max="255" /></div>
+            <div class="slider"><label>G</label><input id="g" type="range" min="0" max="255" /><input id="gN" type="number" min="0" max="255" /></div>
+            <div class="slider"><label>B</label><input id="b" type="range" min="0" max="255" /><input id="bN" type="number" min="0" max="255" /></div>
 
-          <div class="btns">
-            <button id="randColor">랜덤 색상</button>
-            <button id="whiteColor">흰색으로</button>
+            <div class="btns">
+              <button id="randColor">랜덤 색상</button>
+              <button id="whiteColor">흰색으로</button>
+            </div>
           </div>
-        </div><div class="panel" id="colorPanel" style="margin-top:14px;">
+        </div>
+
+        <div class="panel" style="margin-top:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
             <h2>남은 갯수</h2>
             <div style="font-size:12px;color:#64748b;">남은 칸: <b id="remainTotal">0</b></div>
@@ -191,9 +148,6 @@ body{ overflow-x:auto; }
             <div id="remainList" class="remainlist"></div>
           </div>
         </div>
-
-
-        
       </div>
 
       <div class="col">
@@ -209,8 +163,6 @@ body{ overflow-x:auto; }
             </div>
           </div>
         </div>
-        </div>
-
 
         <div class="panel" style="margin-top:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -221,14 +173,11 @@ body{ overflow-x:auto; }
         </div>
       </div>
     </div>
-</div>
+  </div>
 
 <script>
   const $ = (id) => document.getElementById(id);
-
-  // tiles: {id,name,revealed,revealedAt}
   let tiles = [];
-  // history: 클릭으로 뽑은 항목들(순서대로)
   let history = [];
 
   function clampInt(n, min, max){
@@ -237,15 +186,9 @@ body{ overflow-x:auto; }
     return Math.max(min, Math.min(max, n));
   }
 
-
-  // --- Fit tile text to always stay inside the square (auto-shrink) ---
-  
   function fitOne(el, minPx=12){
     if (!el) return;
-
     const label = el.querySelector('.label') || el;
-
-    // Reset
     label.style.fontSize = '';
     label.style.lineHeight = '';
     label.style.transform = '';
@@ -254,16 +197,10 @@ body{ overflow-x:auto; }
     label.style.overflowWrap = 'anywhere';
     label.style.display = 'block';
     label.style.width = '100%';
-
-    // Make sure container measures correctly
     const cw = el.clientWidth;
     const ch = el.clientHeight;
     if (cw <= 0 || ch <= 0) return;
-
-    // Start from computed font size
     let fs = parseFloat(getComputedStyle(label).fontSize) || 16;
-
-    // Shrink font until it fits
     let guard = 0;
     while (guard++ < 80){
       const sw = label.scrollWidth;
@@ -273,8 +210,6 @@ body{ overflow-x:auto; }
       if (fs <= minPx){ fs = minPx; label.style.fontSize = fs + 'px'; break; }
       label.style.fontSize = fs + 'px';
     }
-
-    // Tighten line-height if still tall
     if (label.scrollHeight > ch){
       label.style.lineHeight = '1.0';
       guard = 0;
@@ -285,8 +220,6 @@ body{ overflow-x:auto; }
         label.style.fontSize = fs + 'px';
       }
     }
-
-    // Final fallback: scale down (never clip / never overflow)
     const sw2 = label.scrollWidth;
     const sh2 = label.scrollHeight;
     if (sw2 > cw || sh2 > ch){
@@ -295,10 +228,10 @@ body{ overflow-x:auto; }
       label.style.transform = `scale(${scale})`;
     }
   }
-
   function fitTileTexts(){
     document.querySelectorAll('#tiles .bigcenter').forEach(el => fitOne(el, 12));
   }
+
   function parseItems(text){
     const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
     const items = [];
@@ -328,20 +261,16 @@ body{ overflow-x:auto; }
     for (const it of items){
       for (let i=0;i<it.count;i++) pool.push(it.name);
     }
-
     const FILL = "꽝";
     if (pool.length < size){
       for (let i=0;i<(size - pool.length);i++) pool.push(FILL);
     } else if (pool.length > size){
-      pool.length = size; // 초과분은 잘라냄
+      pool.length = size;
     }
-
-    // shuffle
     for (let i=pool.length-1;i>0;i--){
       const j = Math.floor(Math.random()*(i+1));
       [pool[i],pool[j]] = [pool[j],pool[i]];
     }
-
     return pool.map((name)=>({ id:`${seq++}-${name}`, name, revealed:false }));
   }
 
@@ -408,15 +337,10 @@ body{ overflow-x:auto; }
     $('remainTotal').textContent = `${tiles.length - revealed}`;
     $('tileCount').textContent = `${tiles.length}`;
 
-    // remaining list
     const rem = computeRemaining();
     const list = $('remainList');
     list.innerHTML = '';
-    if (tiles.length === 0){
-      list.innerHTML = '';
-    } else if (rem.length === 0){
-      list.innerHTML = '';
-    } else {
+    if (tiles.length && rem.length){
       for (const x of rem){
         const row = document.createElement('div');
         row.className = 'remainitem';
@@ -425,42 +349,38 @@ body{ overflow-x:auto; }
       }
     }
 
-    // tiles
     const cols = getCols(tiles.length || 1);
     $('cols').textContent = `${cols}`;
     const tilesEl = $('tiles');
     tilesEl.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     tilesEl.innerHTML = '';
 
-    if (tiles.length === 0){
-      tilesEl.innerHTML = ``;
-    } else {
+    if (tiles.length){
       tiles.forEach((t, idx)=>{
         const div = document.createElement('div');
         div.className = 'tile ' + (t.revealed ? 'revealed' : 'hidden');
         div.title = t.revealed ? t.name : `#${idx+1}`;
-        // ✅ 요구: 물음표(?) 제거, 숫자만 가운데 크게 / 클릭하면 숫자 위치에 항목 표시
         div.innerHTML = `<div class="bigcenter"><span class="label">${t.revealed ? escapeHtml(t.name) : (idx+1)}</span></div>`;
         div.addEventListener('click', ()=>{
           if (t.revealed) return;
           t.revealed = true;
           t.revealedAt = Date.now();
           history.push(t.name);
+
+          // ✅ 로그: 뽑힘
+          window.logEvent?.("draw", { index: idx + 1, result: t.name });
+
           render();
         });
         tilesEl.appendChild(div);
       });
     }
 
-    // ensure tile text always fits
     requestAnimationFrame(fitTileTexts);
 
-    // history
     const hEl = $('history');
     hEl.innerHTML = '';
-    if (history.length === 0){
-      hEl.innerHTML = '';
-    } else {
+    if (history.length){
       history.forEach((name, i)=>{
         const box = document.createElement('div');
         box.className = 'histitem';
@@ -494,6 +414,9 @@ body{ overflow-x:auto; }
     history = [];
     renderColor();
     render();
+
+    // ✅ 로그: 보드 생성(품목 입력)
+    window.logEvent?.("board_build", { size, itemsText: $('items').value });
   }
 
   function resetReveals(){
@@ -519,18 +442,16 @@ body{ overflow-x:auto; }
     });
     $('whiteColor').addEventListener('click', ()=> setRGB(255,255,255));
 
-    // init
     setRGB(90,160,240);
     createBoard();
     window.addEventListener('resize', ()=>{ fitTileTexts(); });
-
   }
 
   wire();
 
-  // --- RGB settings panel hide/show ---
+  // 색상 패널 토글
   const colorPanelBtn = document.getElementById('toggleColorPanel');
-  const colorPanel = colorPanelBtn?.closest('.panel');
+  const colorPanel = document.getElementById('colorPanel');
   if (colorPanelBtn && colorPanel){
     colorPanelBtn.addEventListener('click', () => {
       const collapsed = colorPanel.classList.toggle('collapsed');
@@ -540,65 +461,7 @@ body{ overflow-x:auto; }
 </script>
 
 <script>
-/* === Font-size matches index.html tile/text ratio ===
-   Base font is proportional to the tile width, then the existing fit logic (if any) may reduce it to prevent overflow.
-*/
-function applyTileBaseFontSize(){
-  const tiles = document.querySelectorAll('.tile');
-  if(!tiles.length) return;
-  // Use first tile as reference size
-  const w = tiles[0].getBoundingClientRect().width || 0;
-  if(!w) return;
-
-  // Index-like ratio: about 18% of tile width
-  const basePx = Math.max(14, Math.min(28, w * 0.18));
-
-  tiles.forEach(t=>{
-    const label = t.querySelector('.bigcenter');
-    if(label){
-      label.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif';
-      label.style.fontWeight = '900';
-      label.style.fontSize = basePx.toFixed(2) + 'px';
-    }
-  });
-}
-</script>
-
-
-<script>
-(function(){
-  const run = ()=>{ try{ applyTileBaseFontSize(); }catch(e){} };
-  window.addEventListener('load', run);
-  window.addEventListener('resize', run);
-
-  // If there is a known board-render function, wrap it so font sizing reapplies after re-render.
-  const candidates = ['renderBoard','renderTiles','buildBoard','drawBoard','createBoard','updateBoard','renderGrid'];
-  for(const name of candidates){
-    const fn = window[name];
-    if(typeof fn === 'function'){
-      window[name] = function(){
-        const r = fn.apply(this, arguments);
-        setTimeout(run, 0);
-        return r;
-      };
-      break;
-    }
-  }
-
-  // Fallback: observe board container for changes
-  const board = document.querySelector('.tiles') || document.querySelector('.draw-board') || document.querySelector('#board') || document.querySelector('.board');
-  if(board && window.MutationObserver){
-    const mo = new MutationObserver(()=>run());
-    mo.observe(board, {childList:true, subtree:true});
-  }
-})();
-</script>
-
-
-  </div>
-
-
-<script>
+  // ====== 비번 로그인 (로컬) ======
   const USERS = {
     "Seravelyy!": { name: "세라", role: "admin" },
     "emo0205": { name: "에메모현", role: "user" }
@@ -609,9 +472,7 @@ function applyTileBaseFontSize(){
     if (!welcome) return;
     welcome.textContent = `${name}님 환영합니다!`;
     welcome.style.display = "block";
-    setTimeout(() => {
-      welcome.style.display = "none";
-    }, 2500);
+    setTimeout(() => welcome.style.display = "none", 2500);
   }
 
   function unlockAs(user) {
@@ -625,12 +486,14 @@ function applyTileBaseFontSize(){
     if (badge) badge.textContent = `${user.name} 님 접속`;
 
     showWelcome(user.name);
+
+    // ✅ 로그: 로그인 성공
+    window.logEvent?.("login", { role: user.role || "user" });
   }
 
   function checkPassword() {
     const input = document.getElementById("password").value.trim();
     const user = USERS[input];
-
     if (user) {
       unlockAs(user);
     } else {
@@ -639,10 +502,12 @@ function applyTileBaseFontSize(){
   }
 
   function doLogout() {
+    // ✅ 로그: 로그아웃
+    window.logEvent?.("logout", {});
+
     sessionStorage.removeItem("unlocked");
     sessionStorage.removeItem("who");
     sessionStorage.removeItem("role");
-    // 잠금 화면으로 복귀
     document.getElementById("site-content").style.display = "none";
     document.getElementById("lock-screen").style.display = "flex";
     document.getElementById("password").value = "";
@@ -657,17 +522,15 @@ function applyTileBaseFontSize(){
     document.getElementById("site-content").style.display = "block";
     const badge = document.getElementById("who-badge");
     if (badge && who) badge.textContent = `${who} 님 접속`;
-    // role 유지
     sessionStorage.setItem("role", role);
   }
 </script>
 
-
-<!-- 🔥 Firebase init (CDN) -->
+<!-- 🔥 Firebase init + Firestore logger (CDN) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCA6pywjLx2TbYDnmdfrdwB2JWvzL2ejl4",
@@ -682,14 +545,26 @@ import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.g
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // 전역으로 노출
   window.firebaseApp = app;
   window.firebaseAuth = auth;
   window.firebaseDB = db;
 
-  console.log("✅ Firebase initialized");
-</script>
-<!-- 🔥 Firebase init end -->
-</body>
+  // ✅ 로그 쓰기 함수 (유저에게는 안 보이고 Firestore에만 저장됨)
+  window.logEvent = async function(type, payload = {}) {
+    try {
+      await addDoc(collection(db, "logs"), {
+        type,
+        ...payload,
+        who: sessionStorage.getItem("who") || "unknown",
+        time: serverTimestamp(),
+        href: location.href
+      });
+    } catch (e) {
+      console.warn("logEvent failed:", e);
+    }
+  };
 
+  console.log("✅ Firebase initialized + logger ready");
+</script>
+</body>
 </html>
